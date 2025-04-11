@@ -52,6 +52,5 @@ temp/
 nltk_data/
 
 # Large model files and cache
-models/
 *.model
 *.cache 
