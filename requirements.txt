@@ -24,3 +24,4 @@ sudachidict_core
 vocos
 h5py
 torchmetrics
+peft

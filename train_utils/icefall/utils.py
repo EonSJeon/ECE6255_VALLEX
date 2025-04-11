@@ -244,8 +244,9 @@ def save_checkpoint_impl(
         "optimizer": optimizer.state_dict() if optimizer is not None else None,
         "scheduler": scheduler.state_dict() if scheduler is not None else None,
         "grad_scaler": scaler.state_dict() if scaler is not None else None,
-        "sampler": sampler.state_dict() if sampler is not None else None,
+        "sampler": sampler.state_dict() if (sampler is not None and hasattr(sampler, "state_dict")) else None,
     }
+
 
     if model_avg is not None:
         checkpoint["model_avg"] = model_avg.to(torch.float32).state_dict()
