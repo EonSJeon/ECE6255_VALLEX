@@ -1,0 +1,93 @@
+<<<<<<< HEAD
+import os
+import torch
+import logging
+from data.dataset import create_dataloader
+from macros import *
+from data.tokenizer import (
+    AudioTokenizer,
+    tokenize_audio,
+)
+from data.collation import get_text_token_collater
+from models.vallex import VALLE
+if torch.cuda.is_available():
+    device = torch.device("cuda", 0)
+from vocos import Vocos
+
+def get_model(device):
+    import pathlib
+    pathlib.WindowsPath = pathlib.Path 
+
+    url = 'https://huggingface.co/Plachta/VALL-E-X/resolve/main/vallex-checkpoint.pt'
+
+    checkpoints_dir = "./checkpoints"
+
+    model_checkpoint_name = "vallex-checkpoint_modified.pt"
+    if not os.path.exists(checkpoints_dir): os.mkdir(checkpoints_dir)
+    if not os.path.exists(os.path.join(checkpoints_dir, model_checkpoint_name)):
+        import wget
+        print("3")
+        try:
+            logging.info(
+                "Downloading model from https://huggingface.co/Plachta/VALL-E-X/resolve/main/vallex-checkpoint.pt ...")
+            # download from https://huggingface.co/Plachta/VALL-E-X/resolve/main/vallex-checkpoint.pt to ./checkpoints/vallex-checkpoint.pt
+            wget.download("https://huggingface.co/Plachta/VALL-E-X/resolve/main/vallex-checkpoint.pt",
+                          out="./checkpoints/vallex-checkpoint.pt", bar=wget.bar_adaptive)
+        except Exception as e:
+            logging.info(e)
+            raise Exception(
+                "\n Model weights download failed, please go to 'https://huggingface.co/Plachta/VALL-E-X/resolve/main/vallex-checkpoint.pt'"
+                "\n manually download model weights and put it to {} .".format(os.getcwd() + "\checkpoints"))
+    # VALL-E
+    model = VALLE(
+        N_DIM,
+        NUM_HEAD,
+        NUM_LAYERS,
+        norm_first=True,
+        add_prenet=False,
+        prefix_mode=PREFIX_MODE,
+        share_embedding=True,
+        nar_scale_factor=1.0,
+        prepend_bos=True,
+        num_quantizers=NUM_QUANTIZERS,
+    ).to(device)
+
+    with torch.serialization.safe_globals({'pathlib.WindowsPath': pathlib.WindowsPath}):
+        checkpoint = torch.load(
+            os.path.join(checkpoints_dir, model_checkpoint_name),
+            map_location='cpu',
+            weights_only=False  # Explicitly load full checkpoint
+        )
+
+
+    missing_keys, unexpected_keys = model.load_state_dict(
+        checkpoint["model"], strict=True
+    )
+    assert not missing_keys
+
+    # Encodec
+    codec = AudioTokenizer(device)
+    
+    vocos = Vocos.from_pretrained('charactr/vocos-encodec-24khz').to(device)
+    
+    return model, codec, vocos
+=======
+from utils.prompt_making import make_prompt
+
+### Use given transcript
+make_prompt(name="sample", audio_prompt_path="sample.wav",
+                transcript="It was a bright cold day in April, and the clocks were striking thirteen.")
+
+from utils.generation import SAMPLE_RATE, generate_audio, preload_models
+from scipy.io.wavfile import write as write_wav
+
+# download and load all models
+preload_models()
+
+text_prompt = """
+Hey, Traveler, Listen to this, This machine has taken my voice, and now it can talk just like me!
+"""
+audio_array = generate_audio(text_prompt, prompt="sample")
+
+write_wav("sample_cloned.wav", SAMPLE_RATE, audio_array)
+>>>>>>> 9c5cba6e7226898c0cfa6441237eec64ae201095
