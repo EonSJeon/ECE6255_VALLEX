@@ -16,6 +16,7 @@ jieba
 eng_to_ipa
 openai-whisper
 matplotlib
+tensorboard
 gradio==3.41.2
 nltk
 sudachipy
