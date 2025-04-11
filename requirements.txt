@@ -22,3 +22,4 @@ nltk
 sudachipy
 sudachidict_core
 vocos
+h5py
