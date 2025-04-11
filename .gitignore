@@ -31,7 +31,7 @@ checkpoints/
 *.safetensors
 
 # Audio files
-*.wav
+
 *.mp3
 *.flac
 *.ogg
