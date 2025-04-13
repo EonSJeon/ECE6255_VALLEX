@@ -52,25 +52,35 @@ def average_state_dict(
             v += state_dict_2[k].to(device=state_dict_1[k].device) * weight_2
             v *= scaling_factor
 
+from pathlib import PosixPath  # make sure to import this
+import torch
+import logging
+from torch import nn
+from torch.optim import Optimizer
+from typing import Optional, Dict, Any
+
 def load_checkpoint(
     filename: Path,
     model: nn.Module,
     model_avg: Optional[nn.Module] = None,
     optimizer: Optional[Optimizer] = None,
-    scheduler: Optional[LRSchedulerType] = None,
-    scaler: Optional[GradScaler] = None,
-    sampler: Optional[Sampler] = None,
+    scheduler: Optional = None,  # Replace LRSchedulerType if needed
+    scaler: Optional = None,
+    sampler: Optional = None,
     strict: bool = False,
 ) -> Dict[str, Any]:
     """
-    TODO: document it
+    Loads a checkpoint with safe globals to allow PosixPath.
     """
     logging.info(f"Loading checkpoint from {filename}")
-    checkpoint = torch.load(filename, map_location="cpu")
+
+    # Use safe_globals context to allow pathlib.PosixPath during unpickling,
+    # and set weights_only to False to load the full checkpoint.
+    with torch.serialization.safe_globals([PosixPath]):
+        checkpoint = torch.load(filename, map_location="cpu", weights_only=False)
 
     if next(iter(checkpoint["model"])).startswith("module."):
         logging.info("Loading checkpoint saved by DDP")
-
         dst_state_dict = model.state_dict()
         src_state_dict = checkpoint["model"]
         for key in dst_state_dict.keys():
@@ -100,6 +110,7 @@ def load_checkpoint(
     load("sampler", sampler)
 
     return checkpoint
+
 
 def find_checkpoints(out_dir: Path, iteration: int = 0) -> List[str]:
     """Find all available checkpoints in a directory.
