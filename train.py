@@ -452,7 +452,7 @@ def save_checkpoint(
     """
     if rank != 0:
         return
-    filename = params.exp_dir / f"epoch-{params.cur_epoch}.pt"
+    filename = params.exp_dir / "final-checkpoint.pt"
     save_checkpoint_impl(
         filename=filename,
         model=model,
