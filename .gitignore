@@ -31,15 +31,16 @@ checkpoints/
 *.safetensors
 
 # Audio files
-
+*.wav
 *.mp3
 *.flac
 *.ogg
 *.m4a
 
 # Dataset and experimental files
+data/
 exp/
-ProjDataset/
+customs/
 
 # Logs and temporary files
 *.log
@@ -52,5 +53,6 @@ temp/
 nltk_data/
 
 # Large model files and cache
+models/
 *.model
 *.cache 
