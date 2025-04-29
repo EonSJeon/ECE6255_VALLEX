@@ -95,7 +95,7 @@ def get_parser():
     parser.add_argument(
         "--num-epochs",
         type=int,
-        default=20,
+        default=100,
         help="Number of epochs to train.",
     )
 
@@ -180,7 +180,7 @@ def get_parser():
     parser.add_argument(
         "--valid-interval",
         type=int,
-        default=10000,
+        default=10,
         help="""Run validation if batch_idx %% valid_interval is 0.""",
     )
 
@@ -314,7 +314,7 @@ def get_params() -> AttributeDict:
             "batch_idx_train": 0,
             "log_interval": 100,  # 10: debug 100: train
             "reset_interval": 200,
-            "valid_interval": 10000,
+            "valid_interval": 10,
         }
     )
 
@@ -867,63 +867,6 @@ def run(rank, world_size, args):
     num_param = sum([p.numel() for p in model.parameters()])
     logging.info(f"Number of model parameters: {num_param}")
 
-    # ------------------------------
-    # Apply LoRA using the PEFT package
-    # ------------------------------
-    # Freeze base model parameters to update only the LoRA layers
-    for param in model.parameters():
-        param.requires_grad = False
-
-    # (2) Explicitly list all the Linear layers you want LoRA’d
-    lora_config = LoraConfig(
-        task_type=TaskType.SEQ_2_SEQ_LM,
-        inference_mode=False,
-        r=8,
-        lora_alpha=32,
-        lora_dropout=0.1,
-        # match every layer you printed above:
-        target_modules=[
-            # AR decoder
-            "ar_decoder.layers.*.self_attn.out_proj",
-            "ar_decoder.layers.*.linear1",
-            "ar_decoder.layers.*.linear2",
-            "ar_predict_layer",
-            # NAR decoder
-            "nar_decoder.layers.*.self_attn.out_proj",
-            "nar_decoder.layers.*.linear1",
-            "nar_decoder.layers.*.linear2",
-            "nar_decoder.layers.*.norm1.project_layer",
-            "nar_decoder.layers.*.norm2.project_layer",
-            "nar_decoder.norm.project_layer",
-            # the NAR output heads
-            "nar_predict_layers.*",
-        ],
-    )
-
-    from types import MethodType
-
-    # stub for HF generation API hooks
-    def _stub_prepare_inputs_for_generation(self, input_ids, **kwargs):
-        return {"x": input_ids, **kwargs}
-
-    def _stub_prepare_encoder_decoder_kwargs_for_generation(self, **kwargs):
-        # return exactly what PEFT will want to pass into forward
-        return kwargs
-
-    # attach them to your base model
-    model.prepare_inputs_for_generation = MethodType(
-        _stub_prepare_inputs_for_generation, model
-    )
-    model._prepare_encoder_decoder_kwargs_for_generation = MethodType(
-        _stub_prepare_encoder_decoder_kwargs_for_generation, model
-    )
-
-    # Wrap the model with LoRA
-    model = get_peft_model(model, lora_config)
-    model.print_trainable_parameters()
-
-    num_param = sum([p.numel() for p in model.parameters()])
-    logging.info(f"Number of model parameters after PEFT wrapping: {num_param}")
 
     assert params.save_every_n >= params.average_period
     model_avg: Optional[nn.Module] = None
