@@ -95,7 +95,7 @@ def get_parser():
     parser.add_argument(
         "--num-epochs",
         type=int,
-        default=20,
+        default=100,
         help="Number of epochs to train.",
     )
 
@@ -180,7 +180,7 @@ def get_parser():
     parser.add_argument(
         "--valid-interval",
         type=int,
-        default=10000,
+        default=10,
         help="""Run validation if batch_idx %% valid_interval is 0.""",
     )
 
@@ -314,7 +314,7 @@ def get_params() -> AttributeDict:
             "batch_idx_train": 0,
             "log_interval": 100,  # 10: debug 100: train
             "reset_interval": 200,
-            "valid_interval": 10000,
+            "valid_interval": 10,
         }
     )
 
@@ -864,9 +864,6 @@ def run(rank, world_size, args):
     logging.info("About to create model")
     model, codec, vocos = get_model(device)
 
-    num_param = sum([p.numel() for p in model.parameters()])
-    logging.info(f"Number of model parameters: {num_param}")
-
     # ------------------------------
     # Apply LoRA using the PEFT package
     # ------------------------------
@@ -924,6 +921,7 @@ def run(rank, world_size, args):
 
     num_param = sum([p.numel() for p in model.parameters()])
     logging.info(f"Number of model parameters after PEFT wrapping: {num_param}")
+
 
     assert params.save_every_n >= params.average_period
     model_avg: Optional[nn.Module] = None
