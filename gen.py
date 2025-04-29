@@ -3,7 +3,7 @@ from train_utils.icefall.utils import load_checkpoint
 
 ### Use given transcript
 make_prompt(name="sample-jp", audio_prompt_path="sample-jp.wav",
-                transcript="将来的に太陽光発電が天気や季節に関係なく安定して使えるようになれば")
+                transcript="今日の予定を確認した。")
 
 from utils.generation import SAMPLE_RATE, generate_audio, preload_models
 from scipy.io.wavfile import write as write_wav
@@ -21,4 +21,4 @@ text_prompt = """
 """
 audio_array = gen.generate_audio(text_prompt, prompt="sample-jp", language='ja', accent='日本語')
 
-write_wav("sample_finetuned_cloned-jp.wav", SAMPLE_RATE, audio_array)
+write_wav("sample_original_cloned-jp.wav", SAMPLE_RATE, audio_array)
