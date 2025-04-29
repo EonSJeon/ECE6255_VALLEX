@@ -25,3 +25,4 @@ vocos
 h5py
 torchmetrics
 peft
+gdown
