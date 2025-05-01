@@ -8,7 +8,7 @@ encodec
 langid
 wget
 unidecode
-pyopenjtalk-prebuilt
+pyopenjtalk
 pypinyin
 inflect
 cn2an
@@ -26,3 +26,9 @@ h5py
 torchmetrics
 peft
 gdown
+librosa
+pyworld
+praat-parselmouth
+language-tool-python
+pesq
+jiwer

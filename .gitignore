@@ -47,6 +47,8 @@ customs/
 logs/
 tmp/
 temp/
+results/jp 
+results/en
 .DS_Store
 
 # NLTK data
